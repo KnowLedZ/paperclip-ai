@@ -1,40 +1,47 @@
+# docker-compose.yml
 services:
-  db:
-    image: postgres:17-alpine
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 2s
+      interval: 5s
       timeout: 5s
-      retries: 30
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+      retries: 5
 
-  server:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    ports:
-      - "3100:3100"
-    environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      PORT: "3100"
-      SERVE_UI: "true"
-      PAPERCLIP_DEPLOYMENT_MODE: "authenticated"
-      PAPERCLIP_DEPLOYMENT_EXPOSURE: "private"
-      PAPERCLIP_PUBLIC_URL: "${PAPERCLIP_PUBLIC_URL:-http://localhost:3100}"
-      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET must be set}"
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
     volumes:
-      - paperclip-data:/paperclip
+      - redis-data:/data
+
+  paperclip:
+    image: ghcr.io/paperclipai/paperclip:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"  # Dashboard
+      - "3001:3001"  # API
+    volumes:
+      - paperclip-data:/data
+    environment:
+      - PAPERCLIP_DB_URL=${PAPERCLIP_DB_URL}
+      - PAPERCLIP_REDIS_URL=${PAPERCLIP_REDIS_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - PAPERCLIP_SECRET_KEY=${SECRET_KEY}
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
-  pgdata:
   paperclip-data:
+  postgres-data:
+  redis-data:
