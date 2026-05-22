@@ -25,6 +25,7 @@ services:
     image: ghcr.io/paperclipai/paperclip:latest
     restart: unless-stopped
     ports:
+      - "3100:3100"
     volumes:
       - paperclip-data:/data
     environment:
