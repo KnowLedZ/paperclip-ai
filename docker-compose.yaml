@@ -33,6 +33,7 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
+      - PAPERCLIP_PUBLIC_UR=${PAPERCLIP_PUBLIC_UR}
     depends_on:
       postgres:
         condition: service_healthy
