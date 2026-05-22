@@ -25,8 +25,6 @@ services:
     image: ghcr.io/paperclipai/paperclip:latest
     restart: unless-stopped
     ports:
-      - "3000:3000"  # Dashboard
-      - "3001:3001"  # API
     volumes:
       - paperclip-data:/data
     environment:
@@ -34,7 +32,7 @@ services:
       - PAPERCLIP_REDIS_URL=${PAPERCLIP_REDIS_URL}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - PAPERCLIP_SECRET_KEY=${SECRET_KEY}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
     depends_on:
       postgres:
         condition: service_healthy
